@@ -3,8 +3,6 @@ import csv
 from xml.etree import ElementTree as etree
 
 def writeToCSVFile(filename, comments):
-    #print(comments)
-
     # Simply Appending the Issue Id and the comments in a csv file
     """
     A simple method to write data to the CSV file
@@ -32,12 +30,28 @@ def getIds(token,project,max_issues):
 
     # Sending request
     r = requests.get(API, headers = headers)
+    print(r.content)
+
     data = etree.fromstring(r.content)
 
     for child in data:
-        all_ids.append(child.attrib['id'])
+        issue_details = []
+        print("Title ", child[2][0].text)
+        print("Issue Description ", child[3][0].text, "and type is ",type(child[3][0].text))
+        issue_details.append(child.attrib['id'])
 
+        issue_details.append(child[2][0].text)
+        issue_description = child[3][0].text
+        if issue_description[0].isdigit():
+            print("No Project Description for ",child.attrib['id'])
+            issue_details.append("No Project Description")
+        else:
+            issue_details.append(issue_description)
+
+        all_ids.append(issue_details)
+    #print(all_ids)
     return all_ids
+
 
 def getCommentsForAnIssue(token, issue_id):
     """
@@ -47,7 +61,7 @@ def getCommentsForAnIssue(token, issue_id):
     :return: Return the list of comments made on a issue
     """
     comment_arr = []
-    comment_arr.insert(0, issue_id)
+    #comment_arr.insert(0, issue_id)
 
     # Preparing URL for getting all the comments for a given issue
     API = "https://nyuwp.myjetbrains.com/youtrack/rest/issue/"+issue_id+"/comment"
@@ -61,7 +75,7 @@ def getCommentsForAnIssue(token, issue_id):
 
     for child in tree:
         # Formating the output to display the name of user who commented.
-        line = child.attrib['author'] +' commented ==> '+ child.attrib['text']
+        line = child.attrib['author'] +' commented ==> '+ child.attrib['text'] + '\n'
         comment_arr.append(line)
 
     return comment_arr
@@ -73,13 +87,20 @@ token = file_obj.read()
 # Input the project
 wp_project = input()
 filename = wp_project + '.csv'
-max_issues = 700
+max_issues = 1000
 
 # Get the list of all Issue id for a project
 list_ids = getIds(token,wp_project,max_issues)
 
 # Iterate over each issue id, retrieve the comments for that issue and append the comments to csv file
 for each_id in list_ids:
-    comments_list = getCommentsForAnIssue(token,each_id)
-    writeToCSVFile(filename,comments_list)
+     issue_data = []
+     issue_data.append(each_id[0])
+     issue_data.append(each_id[1])
+     issue_data.append(each_id[2])
+     comments_list = getCommentsForAnIssue(token,each_id[0])
+     comment_data = " ".join(comments_list)
+     issue_data.append(comment_data)
+     # print(issue_data)
+     writeToCSVFile(filename,issue_data)
 
