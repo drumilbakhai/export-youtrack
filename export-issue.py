@@ -2,16 +2,16 @@ import requests
 import csv
 from xml.etree import ElementTree as etree
 
-def writeToCSVFile(filename, comments):
+def writeToCSVFile(filename, data):
     # Simply Appending the Issue Id and the comments in a csv file
     """
     A simple method to write data to the CSV file
     :param filename: The name of the file where the data will be stored or written
-    :param comments: The list of comments pertaining to a single issue
+    :param data: The list of comments pertaining to a single issue
     """
     with open(filename, 'a') as csvfile:
         writer = csv.writer(csvfile, dialect='excel')
-        writer.writerow(comments)
+        writer.writerow(data)
 
 
 def getIds(token,project,max_issues):
@@ -42,8 +42,9 @@ def getIds(token,project,max_issues):
 
         issue_details.append(child[2][0].text)
         issue_description = child[3][0].text
+
         if issue_description[0].isdigit():
-            print("No Project Description for ",child.attrib['id'])
+            # print("No Project Description for ",child.attrib['id'])
             issue_details.append("No Project Description")
         else:
             issue_details.append(issue_description)
@@ -86,7 +87,7 @@ token = file_obj.read()
 
 # Input the project
 wp_project = input()
-filename = wp_project + '.csv'
+filename = "WP_TEST.csv"
 max_issues = 1000
 
 # Get the list of all Issue id for a project
@@ -98,6 +99,7 @@ for each_id in list_ids:
      issue_data.append(each_id[0])
      issue_data.append(each_id[1])
      issue_data.append(each_id[2])
+     # issue_data.append(each_id[3])
      comments_list = getCommentsForAnIssue(token,each_id[0])
      comment_data = " ".join(comments_list)
      issue_data.append(comment_data)
